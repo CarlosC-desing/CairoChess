@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { ACADEMY_ADDRESS } from '@/lib/contact';
 
 const footerLinks = [
   { href: '#inicio', label: 'Inicio' },
@@ -44,7 +45,7 @@ export function SiteFooter() {
               ))}
             </ul>
             <div className="mt-6 space-y-1">
-              <p className="text-sm text-zinc-400">Caracas, Venezuela</p>
+              <p className="text-sm text-zinc-400">{ACADEMY_ADDRESS}</p>
               <p className="text-sm text-zinc-400">info@cairochess.com</p>
             </div>
             <p className="mt-6 text-xs text-zinc-500 sm:text-sm">

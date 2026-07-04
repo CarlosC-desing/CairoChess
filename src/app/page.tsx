@@ -1,7 +1,10 @@
 import Image from 'next/image';
 import { ChessPuzzle } from '@/components/ChessPuzzle';
 import { ProfileCard } from '@/components/ProfileCard';
+import { ScheduleCard } from '@/components/ScheduleCard';
 import { SiteFooter } from '@/components/SiteFooter';
+import { SocialLinks } from '@/components/SocialLinks';
+import { ACADEMY_ADDRESS } from '@/lib/contact';
 
 const navLinks = [
   { href: '#inicio', label: 'Inicio' },
@@ -14,6 +17,8 @@ const profiles = [
     id: 'fundador',
     role: 'Fundador',
     name: 'Ricardo Colmenarez',
+    imageSrc: '/ricardo_colmenarez.png',
+    imageAlt: 'Ricardo Colmenarez, Fundador de CairoChess',
     description:
       'Impulsa la academia con la visión de formar jugadores estratégicos y una comunidad apasionada por el ajedrez.',
   },
@@ -21,6 +26,8 @@ const profiles = [
     id: 'profesor',
     role: 'Profesor',
     name: 'Richard Singer',
+    imageSrc: '/richard_singer.png',
+    imageAlt: 'Richard Singer, Profesor de CairoChess',
     description:
       'Enseñanza progresiva desde táctica básica hasta planificación posicional, adaptada a cada nivel.',
   },
@@ -28,6 +35,8 @@ const profiles = [
     id: 'administracion',
     role: 'Administración',
     name: 'Albert Perdomo',
+    imageSrc: '/albert_perdomo.png',
+    imageAlt: 'Albert Perdomo, Administración de CairoChess',
     description:
       'Coordina horarios, torneos internos y soporte a familias para una experiencia fluida en la academia.',
   },
@@ -35,12 +44,11 @@ const profiles = [
     id: 'ubicacion',
     role: 'Ubicación',
     name: 'Sede Cairo',
-    description:
-      'Av. Francisco de Miranda, Torre Cairo, Piso 3. Caracas, Venezuela. A un paso de tu próxima jugada maestra.',
+    imageSrc: '/fachada.jpg',
+    imageAlt: 'Fachada de la sede CairoChess',
+    description: ACADEMY_ADDRESS,
   },
 ];
-
-const contactPhones = ['+58 412-555-0142', '+58 414-555-0198'];
 
 export default function HomePage() {
   return (
@@ -94,8 +102,14 @@ export default function HomePage() {
                   role={profile.role}
                   name={profile.name}
                   description={profile.description}
+                  imageSrc={profile.imageSrc}
+                  imageAlt={profile.imageAlt}
                 />
               ))}
+            </div>
+
+            <div className="mt-6 flex justify-center sm:mt-8">
+              <ScheduleCard />
             </div>
           </div>
         </section>
@@ -108,18 +122,7 @@ export default function HomePage() {
           <p className="mt-2 text-sm text-text-muted sm:text-base">
             Escríbenos para inscripciones, horarios y torneos.
           </p>
-          <ul className="mt-6 flex flex-col items-center gap-2 sm:flex-row sm:justify-center sm:gap-6">
-            {contactPhones.map((phone) => (
-              <li key={phone}>
-                <a
-                  href={`tel:${phone.replace(/\s/g, '')}`}
-                  className="text-sm font-medium text-white transition-colors hover:text-zinc-300 sm:text-base"
-                >
-                  {phone}
-                </a>
-              </li>
-            ))}
-          </ul>
+          <SocialLinks />
         </section>
       </main>
 
