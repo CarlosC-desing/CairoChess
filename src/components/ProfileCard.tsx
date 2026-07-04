@@ -6,6 +6,7 @@ type ProfileCardProps = {
   description: string;
   imageSrc: string;
   imageAlt: string;
+  priority?: boolean;
 };
 
 const CARD_BG = 'rgb(0 0 0 / 0.3)';
@@ -18,10 +19,17 @@ const TEXT_PANEL_MASK =
 
 const BLEND_OVERLAY = `linear-gradient(to right, transparent 0%, transparent 44%, rgb(0 0 0 / 0.3) 52%, rgb(0 0 0 / 0.5) 58%, ${CARD_BG} 66%, ${CARD_BG} 100%)`;
 
-export function ProfileCard({ role, name, description, imageSrc, imageAlt }: ProfileCardProps) {
+export function ProfileCard({
+  role,
+  name,
+  description,
+  imageSrc,
+  imageAlt,
+  priority = false,
+}: ProfileCardProps) {
   return (
     <div className="flex flex-col">
-      <article className="relative min-h-[148px] overflow-hidden rounded-2xl border border-white/5 bg-black/30 backdrop-blur-sm sm:min-h-[160px]">
+      <article className="relative min-h-[148px] overflow-hidden rounded-2xl border border-white/5 bg-zinc-950/90 sm:min-h-[160px] md:bg-black/30 md:backdrop-blur-sm">
         <div
           className="absolute inset-y-0 left-0 w-[62%]"
           style={{
@@ -33,13 +41,16 @@ export function ProfileCard({ role, name, description, imageSrc, imageAlt }: Pro
             src={imageSrc}
             alt={imageAlt}
             fill
+            priority={priority}
+            loading={priority ? 'eager' : 'lazy'}
+            fetchPriority={priority ? 'high' : 'low'}
             className="object-cover object-top"
             sizes="(max-width: 768px) 62vw, 280px"
           />
         </div>
 
         <div
-          className="absolute inset-y-0 right-0 z-0 w-[58%] backdrop-blur-sm"
+          className="absolute inset-y-0 right-0 z-0 w-[58%] bg-black/85 md:bg-transparent md:backdrop-blur-sm"
           style={{
             background: CARD_BG,
             WebkitMaskImage: TEXT_PANEL_MASK,
@@ -48,7 +59,7 @@ export function ProfileCard({ role, name, description, imageSrc, imageAlt }: Pro
         />
 
         <div
-          className="pointer-events-none absolute inset-y-0 left-0 z-[1] w-full"
+          className="pointer-events-none absolute inset-y-0 left-0 z-1 w-full"
           style={{ background: BLEND_OVERLAY }}
         />
 

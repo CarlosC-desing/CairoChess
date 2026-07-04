@@ -4,7 +4,7 @@ export function ScheduleCard() {
   const openDays = ACADEMY_SCHEDULE.filter((entry) => entry.morning || entry.afternoon);
 
   return (
-    <article className="w-full max-w-lg overflow-hidden rounded-2xl border border-white/5 bg-black/30 backdrop-blur-sm">
+    <article className="w-full max-w-lg overflow-hidden rounded-2xl border border-white/5 bg-zinc-950/90 md:bg-black/30 md:backdrop-blur-sm">
       <div className="border-b border-white/5 bg-zinc-900/80 px-4 py-4 text-center sm:px-5">
         <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-black/50 text-white">
           <svg

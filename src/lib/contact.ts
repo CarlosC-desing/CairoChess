@@ -1,6 +1,9 @@
-export const WHATSAPP_NUMBER = '584125550142';
+export const WHATSAPP_NUMBER = '584141225246';
 
-export const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
+export const WHATSAPP_MESSAGE =
+  'Hola, me gustaría recibir información sobre inscripciones, horarios y clases en la Academia Cairo Chess. ¡Gracias!';
+
+export const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
 
 export const INSTAGRAM_URL = 'https://www.instagram.com/academiachees7?igsh=MXR5cTIxbHEwZ3JubQ==';
 

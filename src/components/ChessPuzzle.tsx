@@ -1,17 +1,24 @@
 'use client';
 
-import confetti from 'canvas-confetti';
 import { Chess, type Square } from 'chess.js';
 import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Chessboard } from 'react-chessboard';
-import { type LichessDailyPuzzle, lichessDailyPuzzleSchema } from '@/lib/landing-schemas';
+import { type LichessDailyPuzzle, isLichessDailyPuzzle } from '@/lib/landing-schemas';
 
-const PUZZLE_API = 'https://lichess.org/api/puzzle/daily';
+const PUZZLE_API = '/api/puzzle/daily';
 
 const MOVE_DOT_STYLE: CSSProperties = {
   background:
     'radial-gradient(circle, rgba(41, 120, 255, 0.55) 18%, rgba(41, 120, 255, 0.15) 19%, transparent 20%)',
+};
+
+const SELECTED_SQUARE_STYLE: CSSProperties = {
+  background: 'rgba(255, 255, 0, 0.35)',
+};
+
+const WRONG_MOVE_SQUARE_STYLE: CSSProperties = {
+  background: 'rgba(239, 68, 68, 0.55)',
 };
 
 function uciToMove(uci: string) {
@@ -51,6 +58,20 @@ function isOwnPiece(pieceType: string, turn: 'w' | 'b'): boolean {
   return color === turn;
 }
 
+function tryPlayerMove(game: Chess, from: string, to: string) {
+  if (from === to) return null;
+
+  const legalMoves = game.moves({ square: from as Square, verbose: true });
+  const isLegal = legalMoves.some((move) => move.from === from && move.to === to);
+  if (!isLegal) return null;
+
+  try {
+    return game.move({ from, to, promotion: 'q' });
+  } catch {
+    return null;
+  }
+}
+
 export function ChessPuzzle() {
   const [puzzle, setPuzzle] = useState<LichessDailyPuzzle['puzzle'] | null>(null);
   const [fen, setFen] = useState('start');
@@ -60,6 +81,11 @@ export function ChessPuzzle() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [optionSquares, setOptionSquares] = useState<Record<string, CSSProperties>>({});
+  const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [wrongMoveSquares, setWrongMoveSquares] = useState<Record<string, CSSProperties>>({});
+  const [showWrongMoveHint, setShowWrongMoveHint] = useState(false);
+  const [boardShake, setBoardShake] = useState(false);
+  const wrongMoveTimeoutRef = useRef<number | null>(null);
   const gameRef = useRef(new Chess());
 
   const turnLabel = turnLabelFromFen(fen);
@@ -68,11 +94,51 @@ export function ChessPuzzle() {
     setOptionSquares({});
   }, []);
 
+  const clearSelection = useCallback(() => {
+    setSelectedSquare(null);
+    clearOptionSquares();
+  }, [clearOptionSquares]);
+
+  const triggerWrongMoveFeedback = useCallback((from: string, to: string) => {
+    setWrongMoveSquares({
+      [from]: WRONG_MOVE_SQUARE_STYLE,
+      [to]: WRONG_MOVE_SQUARE_STYLE,
+    });
+    setShowWrongMoveHint(true);
+    setBoardShake(true);
+    setSelectedSquare(null);
+    setOptionSquares({});
+
+    if (wrongMoveTimeoutRef.current !== null) {
+      window.clearTimeout(wrongMoveTimeoutRef.current);
+    }
+
+    wrongMoveTimeoutRef.current = window.setTimeout(() => {
+      setWrongMoveSquares({});
+      setShowWrongMoveHint(false);
+      setBoardShake(false);
+      wrongMoveTimeoutRef.current = null;
+    }, 650);
+  }, []);
+
   const highlightSquareMoves = useCallback((square: string) => {
     setOptionSquares(getMoveStylesForSquare(gameRef.current, square));
   }, []);
 
-  const celebrate = useCallback(() => {
+  const selectOwnPiece = useCallback(
+    (square: string) => {
+      setSelectedSquare(square);
+      highlightSquareMoves(square);
+    },
+    [highlightSquareMoves],
+  );
+
+  const finishPuzzle = useCallback(async () => {
+    setSolved(true);
+    setShowVictoryModal(true);
+    clearOptionSquares();
+
+    const confetti = (await import('canvas-confetti')).default;
     confetti({
       particleCount: 140,
       spread: 80,
@@ -90,14 +156,7 @@ export function ChessPuzzle() {
       spread: 55,
       origin: { x: 1 },
     });
-  }, []);
-
-  const finishPuzzle = useCallback(() => {
-    setSolved(true);
-    setShowVictoryModal(true);
-    clearOptionSquares();
-    celebrate();
-  }, [celebrate, clearOptionSquares]);
+  }, [clearOptionSquares]);
 
   const applyUci = useCallback((uci: string) => {
     const game = gameRef.current;
@@ -111,105 +170,35 @@ export function ChessPuzzle() {
     }
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadPuzzle() {
-      try {
-        const res = await fetch(PUZZLE_API);
-        if (!res.ok) throw new Error('No se pudo cargar el puzzle');
-        const json = await res.json();
-        const parsed = lichessDailyPuzzleSchema.parse(json);
-        if (cancelled) return;
-
-        const game = new Chess(parsed.puzzle.fen);
-        gameRef.current = game;
-        setPuzzle(parsed.puzzle);
-        setFen(game.fen());
-        setMoveIndex(0);
-        setSolved(false);
-        setShowVictoryModal(false);
-        setOptionSquares({});
-      } catch {
-        if (!cancelled) setError('Error al cargar el ejercicio del día.');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    loadPuzzle();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const onSquareClick = useCallback(
-    ({ piece, square }: { piece: { pieceType: string } | null; square: string }) => {
-      if (solved) return;
-
-      if (!piece) {
-        clearOptionSquares();
-        return;
-      }
-
-      const game = gameRef.current;
-      if (!isOwnPiece(piece.pieceType, game.turn())) {
-        clearOptionSquares();
-        return;
-      }
-
-      highlightSquareMoves(square);
-    },
-    [clearOptionSquares, highlightSquareMoves, solved],
-  );
-
-  const onSquareRightClick = useCallback(() => {
-    clearOptionSquares();
-  }, [clearOptionSquares]);
-
-  const onPieceDrag = useCallback(
-    ({ square }: { square: string | null }) => {
-      if (solved || !square) {
-        clearOptionSquares();
-        return;
-      }
-
-      highlightSquareMoves(square);
-    },
-    [clearOptionSquares, highlightSquareMoves, solved],
-  );
-
-  const onPieceDrop = useCallback(
-    ({ sourceSquare, targetSquare }: { sourceSquare: string; targetSquare: string | null }) => {
-      clearOptionSquares();
-
-      if (solved || !puzzle || !targetSquare) return false;
+  const processPlayerMove = useCallback(
+    (sourceSquare: string, targetSquare: string): boolean => {
+      if (solved || !puzzle || sourceSquare === targetSquare) return false;
 
       const expectedUci = puzzle.solution[moveIndex];
       if (!expectedUci) return false;
 
       const game = gameRef.current;
-      let played: ReturnType<Chess['move']> | null = null;
+      const played = tryPlayerMove(game, sourceSquare, targetSquare);
 
-      try {
-        played = game.move({
-          from: sourceSquare,
-          to: targetSquare,
-          promotion: 'q',
-        });
-      } catch {
+      if (!played) {
+        triggerWrongMoveFeedback(sourceSquare, targetSquare);
         return false;
       }
 
-      if (!played || !sameMove(played, expectedUci)) {
+      if (!sameMove(played, expectedUci)) {
         try {
           game.undo();
         } catch {
           // ignore undo errors on invalid moves
         }
+        triggerWrongMoveFeedback(sourceSquare, targetSquare);
         return false;
       }
 
+      setSelectedSquare(null);
+      setOptionSquares({});
+      setWrongMoveSquares({});
+      setShowWrongMoveHint(false);
       setFen(game.fen());
       const nextIndex = moveIndex + 1;
 
@@ -236,29 +225,172 @@ export function ChessPuzzle() {
 
       return true;
     },
-    [applyUci, clearOptionSquares, finishPuzzle, moveIndex, puzzle, solved],
+    [applyUci, finishPuzzle, moveIndex, puzzle, solved, triggerWrongMoveFeedback],
   );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadPuzzle() {
+      try {
+        const res = await fetch(PUZZLE_API);
+        if (!res.ok) throw new Error('No se pudo cargar el puzzle');
+        const json: unknown = await res.json();
+        if (!isLichessDailyPuzzle(json)) throw new Error('Respuesta de puzzle inválida');
+        if (cancelled) return;
+
+        const game = new Chess(json.puzzle.fen);
+        gameRef.current = game;
+        setPuzzle(json.puzzle);
+        setFen(game.fen());
+        setMoveIndex(0);
+        setSolved(false);
+        setShowVictoryModal(false);
+        setOptionSquares({});
+        setSelectedSquare(null);
+        setWrongMoveSquares({});
+        setShowWrongMoveHint(false);
+      } catch {
+        if (!cancelled) setError('Error al cargar el ejercicio del día.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    loadPuzzle();
+    return () => {
+      cancelled = true;
+      if (wrongMoveTimeoutRef.current !== null) {
+        window.clearTimeout(wrongMoveTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const onSquareClick = useCallback(
+    ({ piece, square }: { piece: { pieceType: string } | null; square: string }) => {
+      if (solved) return;
+
+      const game = gameRef.current;
+
+      if (selectedSquare) {
+        if (selectedSquare === square) {
+          clearSelection();
+          return;
+        }
+
+        if (piece && isOwnPiece(piece.pieceType, game.turn())) {
+          selectOwnPiece(square);
+          return;
+        }
+
+        processPlayerMove(selectedSquare, square);
+        return;
+      }
+
+      if (!piece || !isOwnPiece(piece.pieceType, game.turn())) {
+        clearSelection();
+        return;
+      }
+
+      selectOwnPiece(square);
+    },
+    [clearSelection, processPlayerMove, selectOwnPiece, selectedSquare, solved],
+  );
+
+  const onPieceClick = useCallback(
+    ({ piece, square }: { piece: { pieceType: string }; square: string | null }) => {
+      if (solved || !square) return;
+
+      const game = gameRef.current;
+      if (!isOwnPiece(piece.pieceType, game.turn())) return;
+
+      if (selectedSquare === square) {
+        clearSelection();
+        return;
+      }
+
+      selectOwnPiece(square);
+    },
+    [clearSelection, selectOwnPiece, selectedSquare, solved],
+  );
+
+  const onSquareRightClick = useCallback(() => {
+    clearSelection();
+    setWrongMoveSquares({});
+    setShowWrongMoveHint(false);
+  }, [clearSelection]);
+
+  const onPieceDrag = useCallback(
+    ({ square }: { square: string | null }) => {
+      if (solved || !square) {
+        clearOptionSquares();
+        return;
+      }
+
+      highlightSquareMoves(square);
+    },
+    [clearOptionSquares, highlightSquareMoves, solved],
+  );
+
+  const onPieceDrop = useCallback(
+    ({ sourceSquare, targetSquare }: { sourceSquare: string; targetSquare: string | null }) => {
+      setSelectedSquare(null);
+      setOptionSquares({});
+
+      if (solved || !puzzle || !targetSquare) return false;
+
+      return processPlayerMove(sourceSquare, targetSquare);
+    },
+    [processPlayerMove, puzzle, solved],
+  );
+
+  const squareStyles = useMemo(() => {
+    const styles: Record<string, CSSProperties> = { ...optionSquares, ...wrongMoveSquares };
+
+    if (selectedSquare) {
+      styles[selectedSquare] = {
+        ...styles[selectedSquare],
+        ...SELECTED_SQUARE_STYLE,
+      };
+    }
+
+    return styles;
+  }, [optionSquares, selectedSquare, wrongMoveSquares]);
 
   const boardOptions = useMemo(
     () => ({
       position: fen,
       allowDragging: !solved,
+      allowAutoScroll: false,
+      dragActivationDistance: 15,
       animationDurationInMs: 200,
       showAnimations: true,
-      squareStyles: optionSquares,
+      squareStyles,
       onSquareClick,
       onSquareRightClick,
+      onPieceClick,
       onPieceDrag,
       onPieceDrop,
+      canDragPiece: ({ piece }: { piece: { pieceType: string } }) =>
+        isOwnPiece(piece.pieceType, gameRef.current.turn()),
       darkSquareStyle: { backgroundColor: '#0a234c' },
       lightSquareStyle: { backgroundColor: '#1e4976' },
     }),
-    [fen, onPieceDrag, onPieceDrop, onSquareClick, onSquareRightClick, optionSquares, solved],
+    [
+      fen,
+      onPieceClick,
+      onPieceDrag,
+      onPieceDrop,
+      onSquareClick,
+      onSquareRightClick,
+      squareStyles,
+      solved,
+    ],
   );
 
   if (loading) {
     return (
-      <div className="rounded-xl border border-white/5 bg-black/30 p-6 text-center text-zinc-400 backdrop-blur-sm">
+      <div className="rounded-xl border border-white/5 bg-zinc-950/90 p-6 text-center text-zinc-400 md:bg-black/30 md:backdrop-blur-sm">
         Cargando ejercicio del día...
       </div>
     );
@@ -266,7 +398,7 @@ export function ChessPuzzle() {
 
   if (error || !puzzle) {
     return (
-      <div className="rounded-xl border border-white/5 bg-black/30 p-6 text-center text-zinc-400 backdrop-blur-sm">
+      <div className="rounded-xl border border-white/5 bg-zinc-950/90 p-6 text-center text-zinc-400 md:bg-black/30 md:backdrop-blur-sm">
         {error ?? 'Puzzle no disponible.'}
       </div>
     );
@@ -283,13 +415,25 @@ export function ChessPuzzle() {
         </span>
       </div>
 
-      <div className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 touch-none md:left-auto md:mx-auto md:w-full md:max-w-[500px] md:translate-x-0">
+      <div
+        className={`relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2 touch-none md:left-auto md:mx-auto md:w-full md:max-w-[500px] md:translate-x-0 ${boardShake ? 'animate-board-shake' : ''}`}
+      >
         <Chessboard options={boardOptions} />
       </div>
 
+      {showWrongMoveHint && (
+        <p
+          className="animate-wrong-hint px-3 text-center text-sm font-medium text-red-400 sm:px-4 md:px-0"
+          role="status"
+          aria-live="polite"
+        >
+          Movimiento incorrecto — intenta de nuevo
+        </p>
+      )}
+
       {showVictoryModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl border border-white/20 bg-white/10 p-6 text-center shadow-2xl backdrop-blur-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 md:bg-black/40 md:backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl border border-white/20 bg-zinc-950/90 p-6 text-center shadow-2xl md:bg-white/10 md:backdrop-blur-xl">
             <p className="text-xl font-semibold text-text-light sm:text-2xl">
               ¡Ejercicio Completado!
             </p>

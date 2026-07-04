@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { ChessPuzzle } from '@/components/ChessPuzzle';
+import { ChessPuzzleLoader } from '@/components/ChessPuzzleLoader';
 import { ProfileCard } from '@/components/ProfileCard';
 import { ScheduleCard } from '@/components/ScheduleCard';
 import { SiteFooter } from '@/components/SiteFooter';
@@ -53,7 +53,7 @@ const profiles = [
 export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-black/50 backdrop-blur-md">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-black/85 md:bg-black/50 md:backdrop-blur-md">
         <nav className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-3 sm:px-4 sm:py-4">
           <a href="#inicio" className="flex min-w-0 shrink items-center">
             <Image
@@ -87,10 +87,10 @@ export default function HomePage() {
               Resuelve el puzzle diario de Lichess y mejora tu visión táctica.
             </p>
           </div>
-          <ChessPuzzle />
+          <ChessPuzzleLoader />
         </section>
 
-        <section id="sobre-nosotros" className="py-10 sm:py-14">
+        <section id="sobre-nosotros" className="py-10 [content-visibility:auto] sm:py-14">
           <div className="mx-auto max-w-6xl px-3 sm:px-4">
             <h2 className="mb-6 text-center text-xl font-bold text-text-light sm:mb-8 sm:text-2xl md:text-3xl">
               Sobre Nosotros

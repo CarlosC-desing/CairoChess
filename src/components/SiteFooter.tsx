@@ -44,9 +44,8 @@ export function SiteFooter() {
                 </li>
               ))}
             </ul>
-            <div className="mt-6 space-y-1">
+            <div className="mt-6">
               <p className="text-sm text-zinc-400">{ACADEMY_ADDRESS}</p>
-              <p className="text-sm text-zinc-400">info@cairochess.com</p>
             </div>
             <p className="mt-6 text-xs text-zinc-500 sm:text-sm">
               Desarrollado por: <span className="shimmer-name font-semibold">Carlos Canelón</span>

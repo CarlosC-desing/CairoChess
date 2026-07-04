@@ -56,4 +56,88 @@
     color: transparent;
     animation: shimmer-name 2.8s linear infinite;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shimmer-name {
+      animation: none;
+      background: #2563eb;
+      background-size: auto;
+    }
+  }
+
+  @keyframes board-shake {
+    0%,
+    100% {
+      transform: translateX(-50%);
+    }
+    20% {
+      transform: translateX(calc(-50% - 6px));
+    }
+    40% {
+      transform: translateX(calc(-50% + 6px));
+    }
+    60% {
+      transform: translateX(calc(-50% - 4px));
+    }
+    80% {
+      transform: translateX(calc(-50% + 4px));
+    }
+  }
+
+  @keyframes wrong-hint {
+    0% {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    15% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    85% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  .animate-board-shake {
+    animation: board-shake 0.45s ease-in-out;
+  }
+
+  .animate-wrong-hint {
+    animation: wrong-hint 0.65s ease-out forwards;
+  }
+
+  @media (min-width: 768px) {
+    @keyframes board-shake {
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+      20% {
+        transform: translateX(-6px);
+      }
+      40% {
+        transform: translateX(6px);
+      }
+      60% {
+        transform: translateX(-4px);
+      }
+      80% {
+        transform: translateX(4px);
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-board-shake {
+      animation: none;
+    }
+
+    .animate-wrong-hint {
+      animation: none;
+      opacity: 1;
+    }
+  }
 }
