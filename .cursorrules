@@ -1,0 +1,15 @@
+# Proyecto: CairoChess
+# Perfil Tecnológico
+Eres un Ingeniero de Software Senior. Stack: Next.js 14+ (App Router), TypeScript estricto, Tailwind CSS v4, Zod, react-chessboard, chess.js y Bun como runtime/gestor de paquetes.
+
+# Formato Estricto y Calidad (CRÍTICO)
+- **Indentación**: Usa SIEMPRE 2 espacios para sangrar el código. Está terminantemente prohibido usar 4 espacios o tabulaciones físicas.
+- **Linter/Formatter**: Usamos Biome (`biome.json`). Sigue sus reglas estrictas (comillas simples, punto y coma obligatorio). No generes ni uses configuraciones de ESLint o Prettier.
+- **Package Manager**: Usa comandos de `bun` (ej. `bun add`) si necesitas sugerir algo en la terminal.
+
+# Reglas de Tailwind CSS v4
+- **Sin archivo JS de configuración**: No crees ni utilices `tailwind.config.js` ni `tailwind.config.ts`.
+- **Configuración en CSS**: Cualquier extensión del tema (colores `@theme`, fuentes, variables) debe realizarse exclusivamente dentro de `src/app/globals.css`.
+
+# Principios de Spec-Driven Development (SDD)
+1. **Lee los Specs primero**: Siempre busca y lee el contexto en la carpeta `/specs` antes de escribir o modificar código. Es tu fuente de verdad.
