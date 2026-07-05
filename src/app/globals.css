@@ -18,10 +18,10 @@
   body {
     @apply min-h-screen overflow-x-hidden bg-bg-primary text-text-light antialiased;
     background-image:
-      linear-gradient(45deg, rgb(20 20 20 / 0.35) 25%, transparent 25%),
-      linear-gradient(-45deg, rgb(20 20 20 / 0.35) 25%, transparent 25%),
-      linear-gradient(45deg, transparent 75%, rgb(20 20 20 / 0.35) 75%),
-      linear-gradient(-45deg, transparent 75%, rgb(20 20 20 / 0.35) 75%);
+      linear-gradient(45deg, rgb(68 68 68 / 0.52) 25%, transparent 25%),
+      linear-gradient(-45deg, rgb(68 68 68 / 0.52) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, rgb(68 68 68 / 0.52) 75%),
+      linear-gradient(-45deg, transparent 75%, rgb(68 68 68 / 0.52) 75%);
     background-size: 48px 48px;
     background-position:
       0 0,
@@ -36,20 +36,19 @@
     0% {
       background-position: 200% center;
     }
+
     100% {
       background-position: -200% center;
     }
   }
 
   .shimmer-name {
-    background: linear-gradient(
-      90deg,
-      #2563eb 0%,
-      #2563eb 35%,
-      #93c5fd 50%,
-      #2563eb 65%,
-      #2563eb 100%
-    );
+    background: linear-gradient(90deg,
+        #2563eb 0%,
+        #2563eb 35%,
+        #93c5fd 50%,
+        #2563eb 65%,
+        #2563eb 100%);
     background-size: 200% auto;
     background-clip: text;
     -webkit-background-clip: text;
@@ -66,19 +65,24 @@
   }
 
   @keyframes board-shake {
+
     0%,
     100% {
       transform: translateX(-50%);
     }
+
     20% {
       transform: translateX(calc(-50% - 6px));
     }
+
     40% {
       transform: translateX(calc(-50% + 6px));
     }
+
     60% {
       transform: translateX(calc(-50% - 4px));
     }
+
     80% {
       transform: translateX(calc(-50% + 4px));
     }
@@ -89,13 +93,16 @@
       opacity: 0;
       transform: translateY(-4px);
     }
+
     15% {
       opacity: 1;
       transform: translateY(0);
     }
+
     85% {
       opacity: 1;
     }
+
     100% {
       opacity: 0;
     }
@@ -111,19 +118,24 @@
 
   @media (min-width: 768px) {
     @keyframes board-shake {
+
       0%,
       100% {
         transform: translateX(0);
       }
+
       20% {
         transform: translateX(-6px);
       }
+
       40% {
         transform: translateX(6px);
       }
+
       60% {
         transform: translateX(-4px);
       }
+
       80% {
         transform: translateX(4px);
       }

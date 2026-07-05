@@ -53,7 +53,7 @@ const profiles = [
 export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-black/85 md:bg-black/50 md:backdrop-blur-md">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-black/50 backdrop-blur-sm">
         <nav className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-3 sm:px-4 sm:py-4">
           <a href="#inicio" className="flex min-w-0 shrink items-center">
             <Image
